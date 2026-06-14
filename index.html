@@ -21,24 +21,17 @@
             window.location.href = url;
         }
 
-        window.onload = function() {
+               window.onload = function() {
             const hash = window.location.hash;
             if (hash.includes("access_token=")) {
                 document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('status').innerHTML = "<h3>Step 2: Sending token to Google Sheet...</h3>";
+                document.getElementById('status').innerHTML = "<h3>Step 2: Saving to Google Sheet...</h3>";
                 
                 const token = hash.split("access_token=")[1].split("&")[0];
                 
-                // Send to Google Apps Script
-                fetch(scriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify({ token: token })
-                }).then(() => {
-                    document.getElementById('status').innerHTML = "<h3 style='color:green'>✅ SUCCESS! Check your Google Sheet.</h3>";
-                }).catch(err => {
-                    document.getElementById('status').innerHTML = "<h3 style='color:red'>❌ Error sending to Sheet.</h3>";
-                });
+                // 🟢 THE BULLETPROOF REDIRECT
+                const finalUrl = scriptUrl + "?token=" + token;
+                window.location.href = finalUrl;
             }
         }
     </script>
