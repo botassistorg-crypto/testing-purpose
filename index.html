@@ -1,39 +1,133 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ASQVI Token Bridge</title>
-    <style>body { font-family: sans-serif; text-align: center; padding-top: 100px; }</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASQVI Token Bridge</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .logo { font-size: 22px; font-weight: 800; color: #2563eb; margin-bottom: 4px; }
+    .subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 24px; }
+    label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px; }
+    input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #f8fafc;
+      padding: 12px;
+      font-size: 15px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    input:focus { border-color: #2563eb; }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .btn-fb { background: #1877f2; color: white; }
+    .status {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #0f172a;
+      font-size: 13px;
+      line-height: 1.8;
+      display: none;
+    }
+    .status.show { display: block; }
+    .success { color: #16a34a; }
+    .error { color: #ef4444; }
+    .warning { color: #f59e0b; }
+  </style>
 </head>
 <body>
-    <h2>ASQVI SaaS Token Bridge</h2>
-    <button id="loginBtn" onclick="startLogin()" style="padding: 20px; background: #1877f2; color: white; border: none; border-radius: 5px; cursor: pointer;">
-        Step 1: Connect to Facebook
-    </button>
-    <div id="status"></div>
+<div class="card">
+  <div class="logo">ASQVI</div>
+  <div class="subtitle">Token Bridge — Admin Only</div>
 
-    <script>
-        const appId = "1728102054869493"; // 🟢 1. PUT YOUR APP ID HERE
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbz_rIjuYsc2sFUQDvDUxFShoWWbHougyHjr0tFz3E38fX8e0bnTUpya-P0mXW_PxgvMmA/exec"; // 🟢 2. PUT YOUR APPS SCRIPT URL HERE
+  <label>Client ID (e.g. ASQVI-001)</label>
+  <input type="text" id="clientId" placeholder="ASQVI-001" />
 
-        function startLogin() {
-            const redirect = window.location.href;
-            const url = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirect}&scope=pages_show_list,pages_manage_posts,public_profile&response_type=token`;
-            window.location.href = url;
-        }
+  <button class="btn btn-fb" id="loginBtn">
+    🔵 Step 1: Connect Facebook
+  </button>
 
-               window.onload = function() {
-            const hash = window.location.hash;
-            if (hash.includes("access_token=")) {
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('status').innerHTML = "<h3>Step 2: Saving to Google Sheet...</h3>";
-                
-                const token = hash.split("access_token=")[1].split("&")[0];
-                
-                // 🟢 THE BULLETPROOF REDIRECT
-                const finalUrl = scriptUrl + "?token=" + token;
-                window.location.href = finalUrl;
-            }
-        }
-    </script>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+  var APP_ID     = "1728102054869493";
+  var SCRIPT_URL = "3eabbc5b67c005ed1ea53eb42918b40b";
+
+  document.getElementById("loginBtn").onclick = function() {
+    var clientId = document.getElementById("clientId").value.trim().toUpperCase();
+    if (!clientId) {
+      showStatus("❌ Client ID দিন আগে।", "error");
+      return;
+    }
+    localStorage.setItem("bridge_client_id", clientId);
+    var redirect = window.location.href.split("#")[0].split("?")[0];
+    var url = "https://www.facebook.com/v19.0/dialog/oauth" +
+      "?client_id=" + APP_ID +
+      "&redirect_uri=" + encodeURIComponent(redirect) +
+      "&scope=pages_show_list,pages_manage_posts,pages_read_engagement,public_profile" +
+      "&response_type=token";
+    window.location.href = url;
+  };
+
+  window.onload = function() {
+    var hash = window.location.hash;
+    if (!hash.includes("access_token=")) return;
+
+    document.getElementById("loginBtn").style.display = "none";
+    showStatus("⏳ Token পাওয়া গেছে। সেভ হচ্ছে...", "warning");
+
+    var shortToken = hash.split("access_token=")[1].split("&")[0];
+    var clientId   = localStorage.getItem("bridge_client_id") || "";
+
+    if (!clientId) {
+      showStatus("❌ Client ID পাওয়া যায়নি। আবার চেষ্টা করুন।", "error");
+      return;
+    }
+
+    var finalUrl = SCRIPT_URL +
+      "?action=SAVE_TOKEN" +
+      "&token=" + encodeURIComponent(shortToken) +
+      "&clientId=" + encodeURIComponent(clientId);
+
+    window.location.href = finalUrl;
+  };
+
+  function showStatus(msg, type) {
+    var el = document.getElementById("status");
+    el.className = "status show " + (type || "");
+    el.innerHTML = msg.replace(/\n/g, "<br>");
+  }
+</script>
 </body>
 </html>
