@@ -95,7 +95,7 @@
     var url = "https://www.facebook.com/v19.0/dialog/oauth" +
       "?client_id=" + APP_ID +
       "&redirect_uri=" + encodeURIComponent(redirect) +
-      "&scope=pages_show_list,pages_manage_posts,pages_read_engagement,public_profile" +
+      "&scope=pages_show_list,pages_manage_posts,pages_read_engagement,pages_manage_metadata,read_insights,public_profile" +
       "&response_type=token";
     window.location.href = url;
   };
