@@ -102,26 +102,46 @@
   };
 
   window.onload = function() {
-    var hash = window.location.hash;
-    if (!hash.includes("access_token=")) return;
+    var params   = new URLSearchParams(window.location.search);
+    var code     = params.get("code");
+    var clientId = params.get("state") || 
+                   localStorage.getItem("bridge_client_id") || "";
+    var error    = params.get("error");
+
+    if (error) {
+      showStatus("❌ Facebook Login ব্যর্থ: " + error, "error");
+      return;
+    }
+
+    if (!code) return;
+
+    if (!clientId) {
+      showStatus("❌ Client ID পাওয়া যায়নি।", "error");
+      return;
+    }
 
     document.getElementById("loginBtn").style.display = "none";
     showStatus("⏳ Token পাওয়া গেছে। সেভ হচ্ছে...", "warning");
 
-    var shortToken = hash.split("access_token=")[1].split("&")[0];
-    var clientId   = localStorage.getItem("bridge_client_id") || "";
-
-    if (!clientId) {
-      showStatus("❌ Client ID পাওয়া যায়নি। আবার চেষ্টা করুন।", "error");
-      return;
-    }
-
     var finalUrl = SCRIPT_URL +
       "?action=SAVE_TOKEN" +
-      "&token=" + encodeURIComponent(shortToken) +
-      "&clientId=" + encodeURIComponent(clientId);
+      "&token=" + encodeURIComponent(code) +
+      "&clientId=" + encodeURIComponent(clientId) +
+      "&isCode=true" +
+      "&redirectUri=" + encodeURIComponent(
+        window.location.href.split("?")[0]
+      );
 
-    window.location.href = finalUrl;
+    fetch(finalUrl)
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+      document.open();
+      document.write(html);
+      document.close();
+    })
+    .catch(function(e) {
+      showStatus("❌ সেভ ব্যর্থ: " + e.message, "error");
+    });
   };
 
   function showStatus(msg, type) {
