@@ -96,7 +96,8 @@
       "?client_id=" + APP_ID +
       "&redirect_uri=" + encodeURIComponent(redirect) +
       "&scope=pages_show_list,pages_manage_posts,pages_read_engagement,pages_manage_metadata,read_insights,public_profile" +
-      "&response_type=token";
+      "&response_type=code" +
+      "&state=" + encodeURIComponent(clientId);
     window.location.href = url;
   };
 
