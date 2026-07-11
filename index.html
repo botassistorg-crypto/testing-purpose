@@ -123,25 +123,18 @@
     document.getElementById("loginBtn").style.display = "none";
     showStatus("⏳ Token পাওয়া গেছে। সেভ হচ্ছে...", "warning");
 
+       var redirectUri = window.location.href.split("?")[0];
+
     var finalUrl = SCRIPT_URL +
       "?action=SAVE_TOKEN" +
       "&token=" + encodeURIComponent(code) +
       "&clientId=" + encodeURIComponent(clientId) +
       "&isCode=true" +
-      "&redirectUri=" + encodeURIComponent(
-        window.location.href.split("?")[0]
-      );
+      "&redirectUri=" + encodeURIComponent(redirectUri);
 
-    fetch(finalUrl)
-    .then(function(r) { return r.text(); })
-    .then(function(html) {
-      document.open();
-      document.write(html);
-      document.close();
-    })
-    .catch(function(e) {
-      showStatus("❌ সেভ ব্যর্থ: " + e.message, "error");
-    });
+    showStatus("⏳ Token সেভ হচ্ছে...", "warning");
+
+    window.location.href = finalUrl;
   };
 
   function showStatus(msg, type) {
