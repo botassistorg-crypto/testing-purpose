@@ -92,7 +92,7 @@
     }
     localStorage.setItem("bridge_client_id", clientId);
     var redirect = window.location.href.split("#")[0].split("?")[0];
-    var url = "https://www.facebook.com/v19.0/dialog/oauth" +
+    var url = "https://www.facebook.com/v21.0/dialog/oauth" +
       "?client_id=" + APP_ID +
       "&redirect_uri=" + encodeURIComponent(redirect) +
       "&scope=pages_show_list,pages_manage_posts,pages_read_engagement,pages_manage_metadata,read_insights,public_profile" +
