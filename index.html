@@ -104,32 +104,35 @@
   window.onload = function() {
     var params   = new URLSearchParams(window.location.search);
     var code     = params.get("code");
-    var clientId = params.get("state") || 
+    var clientId = params.get("state") ||
                    localStorage.getItem("bridge_client_id") || "";
     var error    = params.get("error");
 
     if (error) {
-      showStatus("❌ Facebook Login ব্যর্থ: " + error, "error");
+      document.getElementById("status").className = "status show error";
+      document.getElementById("status").textContent = "Error: " + error;
       return;
     }
 
     if (!code) return;
 
     if (!clientId) {
-      showStatus("❌ Client ID পাওয়া যায়নি।", "error");
+      document.getElementById("status").className = "status show error";
+      document.getElementById("status").textContent = "Client ID not found!";
       return;
     }
 
     document.getElementById("loginBtn").style.display = "none";
-    showStatus("⏳ Token সেভ হচ্ছে...", "warning");
+    document.getElementById("status").className = "status show warning";
+    document.getElementById("status").textContent = "Sending to debug...";
 
-    var VERCEL_URL = "https://conhis.vercel.app";
+    var VERCEL_URL  = "https://conhis.vercel.app";
     var redirectUri = window.location.href.split("?")[0];
 
-fetch(VERCEL_URL + "/api/debug-fb", {
-      method: "POST",
+    fetch(VERCEL_URL + "/api/debug-fb", {
+      method:  "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body:    JSON.stringify({
         code:        code,
         clientId:    clientId,
         redirectUri: redirectUri
@@ -137,22 +140,13 @@ fetch(VERCEL_URL + "/api/debug-fb", {
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
-  console.log("DEBUG DATA:", JSON.stringify(data));
-  var el = document.getElementById("status");
-  el.className = "status show warning";
-  el.textContent = JSON.stringify(data, null, 2);
-        showStatus(
-          "✅ সফল!\n" +
-          "Page: " + data.pageName + "\n" +
-          "Token সেভ হয়েছে! ✅",
-          "success"
-        );
-      } else {
-        showStatus("❌ ব্যর্থ: " + (data.error || "Unknown error"), "error");
-      }
+      console.log("DEBUG:", JSON.stringify(data));
+      document.getElementById("status").className = "status show warning";
+      document.getElementById("status").textContent = JSON.stringify(data);
     })
     .catch(function(e) {
-      showStatus("❌ Error: " + e.message, "error");
+      document.getElementById("status").className = "status show error";
+      document.getElementById("status").textContent = "Error: " + e.message;
     });
   };
 
