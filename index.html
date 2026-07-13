@@ -126,7 +126,7 @@
     var VERCEL_URL = "https://conhis.vercel.app";
     var redirectUri = window.location.href.split("?")[0];
 
-    fetch(VERCEL_URL + "/api/save-token", {
+fetch(VERCEL_URL + "/api/debug-fb", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
