@@ -82,12 +82,12 @@
 
 <script>
   var APP_ID     = "1728102054869493";
-  var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKM1YDqC-sMdIhHWe1nP-evadVj7y3BaN-MP8uGiMz4D3nAz4o5OrgnXX1CQcHzSu1Rw/exec";
+  var VERCEL_URL = "https://conhis.vercel.app";
 
   document.getElementById("loginBtn").onclick = function() {
     var clientId = document.getElementById("clientId").value.trim().toUpperCase();
     if (!clientId) {
-      showStatus("❌ Client ID দিন আগে।", "error");
+      show("Client ID din age!", "error");
       return;
     }
     localStorage.setItem("bridge_client_id", clientId);
@@ -104,29 +104,17 @@
   window.onload = function() {
     var params   = new URLSearchParams(window.location.search);
     var code     = params.get("code");
-    var clientId = params.get("state") ||
-                   localStorage.getItem("bridge_client_id") || "";
+    var state    = params.get("state");
+    var clientId = state || localStorage.getItem("bridge_client_id") || "";
     var error    = params.get("error");
 
-    if (error) {
-      document.getElementById("status").className = "status show error";
-      document.getElementById("status").textContent = "Error: " + error;
-      return;
-    }
-
-    if (!code) return;
-
-    if (!clientId) {
-      document.getElementById("status").className = "status show error";
-      document.getElementById("status").textContent = "Client ID not found!";
-      return;
-    }
+    if (error) { show("Error: " + error, "error"); return; }
+    if (!code)  { return; }
+    if (!clientId) { show("Client ID not found!", "error"); return; }
 
     document.getElementById("loginBtn").style.display = "none";
-    document.getElementById("status").className = "status show warning";
-    document.getElementById("status").textContent = "Sending to debug...";
+    show("Sending...", "warning");
 
-    var VERCEL_URL  = "https://conhis.vercel.app";
     var redirectUri = window.location.href.split("?")[0];
 
     fetch(VERCEL_URL + "/api/debug-fb", {
@@ -139,21 +127,19 @@
       })
     })
     .then(function(r) { return r.json(); })
-    .then(function(data) {
-      console.log("DEBUG:", JSON.stringify(data));
-      document.getElementById("status").className = "status show warning";
-      document.getElementById("status").textContent = JSON.stringify(data);
+    .then(function(d) {
+      document.getElementById("status").className   = "status show warning";
+      document.getElementById("status").textContent = JSON.stringify(d);
     })
     .catch(function(e) {
-      document.getElementById("status").className = "status show error";
-      document.getElementById("status").textContent = "Error: " + e.message;
+      show("Fetch error: " + e.message, "error");
     });
   };
 
-  function showStatus(msg, type) {
+  function show(msg, type) {
     var el = document.getElementById("status");
-    el.className = "status show " + (type || "");
-    el.innerHTML = msg.replace(/\n/g, "<br>");
+    el.className   = "status show " + (type || "");
+    el.textContent = msg;
   }
 </script>
 </body>
