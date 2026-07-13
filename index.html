@@ -121,39 +121,37 @@
     }
 
     document.getElementById("loginBtn").style.display = "none";
-    showStatus("⏳ Token পাওয়া গেছে। সেভ হচ্ছে...", "warning");
-
-       var redirectUri = window.location.href.split("?")[0];
-
     showStatus("⏳ Token সেভ হচ্ছে...", "warning");
 
-var VERCEL_URL = "https://conhis.vercel.app";
+    var VERCEL_URL = "https://conhis.vercel.app";
+    var redirectUri = window.location.href.split("?")[0];
 
-fetch(VERCEL_URL + "/api/save-token", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    code:        code,
-    clientId:    clientId,
-    redirectUri: redirectUri
-  })
-})
-.then(function(r) { return r.json(); })
-.then(function(data) {
-  if (data.success) {
-    showStatus(
-      "✅ সফল!\n" +
-      "Page: " + data.pageName + "\n" +
-      "Token সেভ হয়েছে! ✅",
-      "success"
-    );
-  } else {
-    showStatus("❌ ব্যর্থ: " + (data.error || "Unknown error"), "error");
-  }
-})
-.catch(function(e) {
-  showStatus("❌ Error: " + e.message, "error");
-});
+    fetch(VERCEL_URL + "/api/save-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code:        code,
+        clientId:    clientId,
+        redirectUri: redirectUri
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        showStatus(
+          "✅ সফল!\n" +
+          "Page: " + data.pageName + "\n" +
+          "Token সেভ হয়েছে! ✅",
+          "success"
+        );
+      } else {
+        showStatus("❌ ব্যর্থ: " + (data.error || "Unknown error"), "error");
+      }
+    })
+    .catch(function(e) {
+      showStatus("❌ Error: " + e.message, "error");
+    });
+  };
 
   function showStatus(msg, type) {
     var el = document.getElementById("status");
