@@ -137,7 +137,8 @@ fetch(VERCEL_URL + "/api/debug-fb", {
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      if (data.success) {
+  console.log("DEBUG DATA:", data); // Check this in F12 Console
+  showStatus("DEBUG RESULT: " + JSON.stringify(data), "warning");
         showStatus(
           "✅ সফল!\n" +
           "Page: " + data.pageName + "\n" +
