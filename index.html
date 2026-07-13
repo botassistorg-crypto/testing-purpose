@@ -125,17 +125,35 @@
 
        var redirectUri = window.location.href.split("?")[0];
 
-    var finalUrl = SCRIPT_URL +
-      "?action=SAVE_TOKEN" +
-      "&token=" + encodeURIComponent(code) +
-      "&clientId=" + encodeURIComponent(clientId) +
-      "&isCode=true" +
-      "&redirectUri=" + encodeURIComponent(redirectUri);
-
     showStatus("⏳ Token সেভ হচ্ছে...", "warning");
 
-    window.location.href = finalUrl;
-  };
+var VERCEL_URL = "https://conhis.vercel.app";
+
+fetch(VERCEL_URL + "/api/save-token", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    code:        code,
+    clientId:    clientId,
+    redirectUri: redirectUri
+  })
+})
+.then(function(r) { return r.json(); })
+.then(function(data) {
+  if (data.success) {
+    showStatus(
+      "✅ সফল!\n" +
+      "Page: " + data.pageName + "\n" +
+      "Token সেভ হয়েছে! ✅",
+      "success"
+    );
+  } else {
+    showStatus("❌ ব্যর্থ: " + (data.error || "Unknown error"), "error");
+  }
+})
+.catch(function(e) {
+  showStatus("❌ Error: " + e.message, "error");
+});
 
   function showStatus(msg, type) {
     var el = document.getElementById("status");
