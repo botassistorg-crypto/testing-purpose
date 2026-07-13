@@ -58,90 +58,74 @@
       font-size: 13px;
       line-height: 1.8;
       display: none;
+      word-break: break-all;
     }
     .status.show { display: block; }
     .success { color: #16a34a; }
-    .error { color: #ef4444; }
+    .error   { color: #ef4444; }
     .warning { color: #f59e0b; }
   </style>
 </head>
 <body>
 <div class="card">
   <div class="logo">ASQVI</div>
-  <div class="subtitle">Token Bridge — Admin Only</div>
-
-  <label>Client ID (e.g. ASQVI-001)</label>
+  <div class="subtitle">Token Bridge</div>
+  <label>Client ID</label>
   <input type="text" id="clientId" placeholder="ASQVI-001" />
-
-  <button class="btn btn-fb" id="loginBtn">
-    🔵 Step 1: Connect Facebook
-  </button>
-
+  <button class="btn btn-fb" id="loginBtn">Connect Facebook</button>
   <div class="status" id="status"></div>
 </div>
-
 <script>
-  var APP_ID     = "1728102054869493";
-  var VERCEL_URL = "https://conhis.vercel.app";
+var APP_ID     = "1728102054869493";
+var VERCEL_URL = "https://conhis.vercel.app";
 
-  document.getElementById("loginBtn").onclick = function() {
-    var clientId = document.getElementById("clientId").value.trim().toUpperCase();
-    if (!clientId) {
-      show("Client ID din age!", "error");
-      return;
-    }
-    localStorage.setItem("bridge_client_id", clientId);
-    var redirect = window.location.href.split("#")[0].split("?")[0];
-    var url = "https://www.facebook.com/v21.0/dialog/oauth" +
-      "?client_id=" + APP_ID +
-      "&redirect_uri=" + encodeURIComponent(redirect) +
-      "&scope=pages_show_list,pages_manage_posts,pages_read_engagement,pages_manage_metadata,read_insights,public_profile" +
-      "&response_type=code" +
-      "&state=" + encodeURIComponent(clientId);
-    window.location.href = url;
-  };
+document.getElementById("loginBtn").onclick = function() {
+  var cid = document.getElementById("clientId").value.trim().toUpperCase();
+  if (!cid) { show("Enter Client ID!", "error"); return; }
+  localStorage.setItem("cid", cid);
+  var base = window.location.href.split("?")[0].split("#")[0];
+  window.location.href = "https://www.facebook.com/v21.0/dialog/oauth" +
+    "?client_id=" + APP_ID +
+    "&redirect_uri=" + encodeURIComponent(base) +
+    "&scope=pages_show_list,pages_manage_posts,pages_read_engagement,pages_manage_metadata,public_profile" +
+    "&response_type=code" +
+    "&state=" + encodeURIComponent(cid);
+};
 
-  window.onload = function() {
-    var params   = new URLSearchParams(window.location.search);
-    var code     = params.get("code");
-    var state    = params.get("state");
-    var clientId = state || localStorage.getItem("bridge_client_id") || "";
-    var error    = params.get("error");
+window.onload = function() {
+  var p   = new URLSearchParams(window.location.search);
+  var code = p.get("code");
+  var cid  = p.get("state") || localStorage.getItem("cid") || "";
+  var err  = p.get("error");
 
-    if (error) { show("Error: " + error, "error"); return; }
-    if (!code)  { return; }
-    if (!clientId) { show("Client ID not found!", "error"); return; }
+  if (err)  { show("FB Error: " + err, "error"); return; }
+  if (!code) { return; }
+  if (!cid)  { show("No Client ID!", "error"); return; }
 
-    document.getElementById("loginBtn").style.display = "none";
-    show("Sending...", "warning");
+  document.getElementById("loginBtn").style.display = "none";
+  show("Loading...", "warning");
 
-    var redirectUri = window.location.href.split("?")[0];
+  var base = window.location.href.split("?")[0].split("#")[0];
 
-    fetch(VERCEL_URL + "/api/debug-fb", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({
-        code:        code,
-        clientId:    clientId,
-        redirectUri: redirectUri
-      })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      document.getElementById("status").className   = "status show warning";
-      document.getElementById("status").textContent = JSON.stringify(d);
-    })
-    .catch(function(e) {
-      show("Fetch error: " + e.message, "error");
-    });
-  };
+  fetch(VERCEL_URL + "/api/debug-fb", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: code, clientId: cid, redirectUri: base })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    show(JSON.stringify(d), "warning");
+  })
+  .catch(function(e) {
+    show("Error: " + e.message, "error");
+  });
+};
 
-  function show(msg, type) {
-    var el = document.getElementById("status");
-    el.className   = "status show " + (type || "");
-    el.textContent = msg;
-  }
+function show(msg, type) {
+  var el = document.getElementById("status");
+  el.className   = "status show " + type;
+  el.textContent = msg;
+}
 </script>
 </body>
 </html>
-
