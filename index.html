@@ -69,8 +69,8 @@
 <body>
 <div class="card">
   <div class="logo">ASQVI</div>
-  <div class="subtitle">Token Bridge</div>
-  <label>Client ID</label>
+  <div class="subtitle">Token Bridge — Admin Only</div>
+  <label>Client ID (e.g. ASQVI-001)</label>
   <input type="text" id="clientId" placeholder="ASQVI-001" />
   <button class="btn btn-fb" id="loginBtn">Connect Facebook</button>
   <div class="status" id="status"></div>
@@ -81,40 +81,52 @@ var VERCEL_URL = "https://conhis.vercel.app";
 
 document.getElementById("loginBtn").onclick = function() {
   var cid = document.getElementById("clientId").value.trim().toUpperCase();
-  if (!cid) { show("Enter Client ID!", "error"); return; }
-  localStorage.setItem("cid", cid);
+  if (!cid) {
+    show("Client ID din age!", "error");
+    return;
+  }
+  localStorage.setItem("bridge_cid", cid);
   var base = window.location.href.split("?")[0].split("#")[0];
   window.location.href = "https://www.facebook.com/v21.0/dialog/oauth" +
     "?client_id=" + APP_ID +
     "&redirect_uri=" + encodeURIComponent(base) +
-    "&scope=pages_show_list,pages_manage_posts,pages_read_engagement,pages_manage_metadata,public_profile" +
+    "&scope=pages_show_list,pages_manage_posts,pages_read_engagement,pages_manage_metadata,read_insights,public_profile" +
     "&response_type=code" +
     "&state=" + encodeURIComponent(cid);
 };
 
 window.onload = function() {
-  var p   = new URLSearchParams(window.location.search);
-  var code = p.get("code");
-  var cid  = p.get("state") || localStorage.getItem("cid") || "";
-  var err  = p.get("error");
+  var p     = new URLSearchParams(window.location.search);
+  var code  = p.get("code");
+  var state = p.get("state");
+  var cid   = state || localStorage.getItem("bridge_cid") || "";
+  var err   = p.get("error");
 
-  if (err)  { show("FB Error: " + err, "error"); return; }
+  if (err)   { show("FB Error: " + err, "error"); return; }
   if (!code) { return; }
   if (!cid)  { show("No Client ID!", "error"); return; }
 
   document.getElementById("loginBtn").style.display = "none";
-  show("Loading...", "warning");
+  show("Token save hocche...", "warning");
 
   var base = window.location.href.split("?")[0].split("#")[0];
 
-  fetch(VERCEL_URL + "/api/debug-fb", {
+  fetch(VERCEL_URL + "/api/save-token", {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code: code, clientId: cid, redirectUri: base })
+    body:    JSON.stringify({
+      code:        code,
+      clientId:    cid,
+      redirectUri: base
+    })
   })
   .then(function(r) { return r.json(); })
   .then(function(d) {
-    show(JSON.stringify(d), "warning");
+    if (d.success) {
+      show("Sofol! Page: " + d.pageName + " | Token saved!", "success");
+    } else {
+      show("Failed: " + (d.error || "Unknown error"), "error");
+    }
   })
   .catch(function(e) {
     show("Error: " + e.message, "error");
